@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Track your Dota 2 Quartero's Curios seasonal event progress, estimate games needed, and check your pace.">
+<link rel="icon" href="favicon.ico">
+<title>Curios Calculator</title>
+<style>
+/* ── Fonts ── */
+@font-face { font-family: 'Radiance'; src: url('radiance_regular.otf') format('opentype'); }
+@font-face { font-family: 'RadianceM'; src: url('radiancem_regular.otf') format('opentype'); font-weight: normal; }
+@font-face { font-family: 'RadianceM'; src: url('radiancem_bold.otf') format('opentype'); font-weight: bold; }
+
+/* ── Custom Properties ── */
+:root {
+  --bg-deep: #0D0910;
+  --bg-mid: #2A1B32;
+  --bg-panel: rgba(26,16,32,0.75);
+  --bg-card: rgba(26,16,32,0.6);
+  --bg-input: #1a1020;
+  --border-subtle: rgba(255,191,229,0.06);
+  --border-light: rgba(255,191,229,0.08);
+  --border-input: rgba(229,172,206,0.2);
+  --text-primary: #F6D5E9;
+  --text-muted: #E5ACCE;
+  --text-dim: #8a6a7a;
+  --text-white: #fff;
+  --text-hero: rgba(225,223,199,0.53);
+  --accent-gold: #FCD69C;
+  --accent-gold-dark: #B78946;
+  --color-ahead: #88ff88;
+  --color-behind: #ff8888;
+  --color-warning: #ffaa44;
+  --font-body: 'Radiance', Georgia, serif;
+  --font-title: 'RadianceM', Georgia, serif;
+  --octagon-clip: polygon(50% 0%, 85% 15%, 100% 50%, 85% 85%, 50% 100%, 15% 85%, 0% 50%, 15% 15%);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(to bottom, var(--bg-mid), var(--bg-deep));
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Background ── */
+.page-bg {
+  position: fixed; inset: 0;
+  background: url('bg.png') center top / cover no-repeat;
+  opacity: 0.35;
+  z-index: 0;
+}
+.page-bg::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 60%;
+  background: linear-gradient(to bottom, transparent, var(--bg-deep));
+}
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 1000px; margin: 0 auto; padding: 30px 20px 40px;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 90px 1fr 88px;
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  row-gap: 12px;
+  align-items: center;
+}
+
+.logo-portrait {
+  grid-column: 1; grid-row: 1 / 3;
+  width: 90px; height: auto;
+  align-self: center; justify-self: center;
+  filter: drop-shadow(0 4px 20px rgba(200,100,180,0.3));
+}
+
+.title-group {
+  grid-column: 2; grid-row: 1;
+  text-align: center;
+}
+.title {
+  font-family: var(--font-title);
+  font-weight: bold;
+  font-size: 38px;
+  letter-spacing: 3px;
+  background: linear-gradient(to bottom, #ffffff, #E5FFF1 25%, #FFE5F5);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 2px;
+}
+.subtitle {
+  font-size: 15px;
+  color: var(--text-primary);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+}
+
+/* ── Level Badge ── */
+.level-badge {
+  grid-column: 3; grid-row: 1 / 3;
+  position: relative;
+  width: 88px; height: 88px;
+  display: flex; align-items: center; justify-content: center;
+  align-self: center; justify-self: center;
+}
+.level-badge img {
+  position: absolute; width: 72px; height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(200,100,180,0.4));
+  z-index: 1;
+}
+.level-badge .level-number {
+  position: relative; z-index: 2;
+  font-family: var(--font-title);
+  font-weight: bold; font-size: 28px;
+  color: var(--text-white);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+.level-badge .xp-ring { position: absolute; width: 88px; height: 88px; z-index: 0; }
+.level-badge .xp-ring polygon { fill: none; stroke-width: 3; stroke-linejoin: round; }
+.level-badge .xp-ring .ring-bg { stroke: rgba(255,191,229,0.1); }
+.level-badge .xp-ring .ring-fill {
+  stroke: #E5FFF1;
+  filter: drop-shadow(0 0 4px rgba(229,255,241,0.4));
+  transition: stroke-dashoffset 0.3s;
+}
+
+/* ── Inputs ── */
+.inputs-row {
+  grid-column: 2; grid-row: 2;
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; flex-wrap: wrap;
+}
+.input-row { display: flex; align-items: center; gap: 8px; }
+.input-row label {
+  font-size: 13px; color: var(--text-muted);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+}
+.input-row input[type="number"] {
+  width: 70px; padding: 5px 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  color: var(--text-white);
+  font-family: var(--font-body); font-size: 16px;
+  text-align: center; outline: none;
+  transition: border-color 0.2s;
+}
+.input-row input[type="number"]:focus { border-color: rgba(229,172,206,0.5); }
+.input-row input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
+
+.countdown { font-size: 13px; color: var(--text-muted); text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+.countdown .time-value { color: var(--text-white); font-weight: bold; }
+
+/* ── Shared Panel Style ── */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  margin-bottom: 28px;
+  backdrop-filter: blur(6px);
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+.panel-header h3 {
+  font-family: var(--font-title);
+  font-size: 16px; color: #F2CEE4;
+  letter-spacing: 1px; text-transform: uppercase; margin: 0;
+}
+
+/* ── The Grind ── */
+.xp-summary { display: flex; gap: 24px; margin-left: auto; flex-wrap: wrap; }
+.summary-item { text-align: center; }
+.summary-item .summary-value {
+  font-family: var(--font-title);
+  font-size: 22px; color: var(--text-white);
+  font-weight: bold; display: block; line-height: 1.1;
+}
+.summary-item .summary-label {
+  font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.xp-columns {
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding: 0;
+}
+.xp-col { padding: 12px 18px; }
+.xp-col:first-child { border-right: 1px solid var(--border-subtle); }
+.xp-col-title {
+  font-family: var(--font-title);
+  font-size: 13px; color: #F2CEE4;
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 8px; text-align: center;
+}
+.xp-col-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.xp-col-grid .xp-stat {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+}
+.xp-col-grid .xp-stat:nth-child(2n) { border-right: none; }
+.xp-col-grid .xp-stat:nth-child(n+5) { border-bottom: none; }
+
+.xp-stat { display: flex; justify-content: space-between; align-items: center; }
+.xp-stat .stat-label { font-size: 13px; color: var(--text-muted); }
+.xp-stat .stat-value { font-size: 15px; color: var(--text-white); font-weight: bold; }
+.xp-stat .stat-value.highlight { color: var(--color-ahead); }
+.xp-stat .stat-value.warning { color: var(--color-warning); }
+
+.xp-note {
+  font-size: 11px; color: var(--text-dim);
+  text-align: center; padding: 10px 20px 14px;
+}
+
+/* ── Pace Check ── */
+.pace-actions { display: flex; gap: 8px; }
+.pace-btn {
+  padding: 4px 14px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  background: rgba(26,16,32,0.8);
+  color: var(--text-muted);
+  font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.pace-btn:hover { border-color: rgba(229,172,206,0.4); color: var(--text-white); }
+.pace-btn.danger:hover { border-color: rgba(255,100,100,0.4); color: var(--color-behind); }
+
+.pace-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  font-size: 13px; color: var(--text-muted);
+  padding: 0 20px;
+}
+.pace-cell {
+  text-align: center; padding: 6px 8px;
+  border-right: 1px solid var(--border-subtle);
+}
+.pace-cell:last-child { border-right: none; }
+.pace-label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 2px; }
+.pace-value { display: block; color: var(--text-white); font-weight: bold; }
+.pace-value.ahead { color: var(--color-ahead); }
+.pace-value.behind { color: var(--color-behind); }
+.pace-date { font-size: 11px; color: var(--text-dim); text-align: center; padding: 8px 20px 14px; }
+.pace-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 20px 14px; }
+
+/* ── Rewards ── */
+.rewards-section { margin-bottom: 24px; }
+.rewards-section h3 {
+  font-family: var(--font-title); font-size: 15px;
+  background: linear-gradient(to bottom, #F2CEE4, #4D3945);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  text-align: center; margin-bottom: 14px;
+}
+
+.hero-rewards {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px; margin-bottom: 24px;
+}
+.hero-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px; padding: 16px 12px;
+  text-align: center; display: flex; flex-direction: column;
+}
+.hero-card .card-bottom { margin-top: auto; padding-top: 10px; }
+.hero-card .hero-name {
+  font-size: 11px; color: var(--text-hero);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;
+}
+.hero-card .set-name {
+  font-family: var(--font-title); font-size: 16px;
+  color: var(--text-white); margin-bottom: 10px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6); min-height: 22px;
+}
+.hero-card .set-name a {
+  color: inherit; text-decoration: none;
+  position: relative; transition: color 0.2s;
+}
+.hero-card .set-name a:hover { color: var(--accent-gold); }
+
+.set-preview {
+  display: none; position: absolute;
+  bottom: 100%; left: 50%; transform: translateX(-50%);
+  margin-bottom: 8px; z-index: 10;
+  border: 1px solid rgba(255,191,229,0.15);
+  border-radius: 4px; background: var(--bg-deep);
+  padding: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+}
+.set-preview img { display: block; width: 180px; height: auto; border-radius: 2px; }
+.hero-card .set-name a:hover .set-preview { display: block; }
+
+.tier-toggle {
+  display: inline-flex; background: rgba(0,0,0,0.4);
+  border-radius: 40px; padding: 2px; align-self: center;
+}
+.tier-btn {
+  padding: 3px 14px; border: none; border-radius: 40px;
+  background: transparent; color: var(--text-dim);
+  font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.tier-btn.active { background: rgba(255,191,229,0.15); color: var(--text-white); }
+
+/* ── Reward Badges ── */
+.level-badges { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+
+.reward-dot-wrap {
+  position: relative; width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+}
+.reward-dot-wrap::before {
+  content: ''; position: absolute; inset: 0;
+  clip-path: var(--octagon-clip);
+  background: linear-gradient(to bottom, #666250, #2f2e24);
+  z-index: 0;
+}
+.reward-dot {
+  width: 30px; height: 30px;
+  clip-path: var(--octagon-clip);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; background: #0d0810; color: #ccc9a7;
+  transition: all 0.3s; z-index: 1;
+}
+
+/* Unlocked */
+.reward-dot-wrap.unlocked::before { background: linear-gradient(to bottom, #70b384, #34593b); }
+.reward-dot-wrap.unlocked .reward-dot { background: linear-gradient(to bottom, #14291d, #25462b); color: #b9ffe1; }
+.reward-dot-wrap.unlocked::after {
+  content: '\2713'; position: absolute; bottom: -2px; right: -2px;
+  width: 12px; height: 12px; font-size: 8px; line-height: 11px;
+  text-align: center; color: #65c36b;
+  background: #120f0b; border: 1px solid #2f3931;
+  border-radius: 50%; z-index: 2;
+}
+
+/* Targeted */
+.reward-dot-wrap.targeted::before {
+  background: linear-gradient(to bottom, var(--accent-gold), var(--accent-gold-dark));
+  animation: pulse-gold 2.5s ease-in-out infinite;
+  animation-delay: var(--pulse-delay, 0s);
+}
+.reward-dot-wrap.targeted .reward-dot { color: var(--accent-gold); }
+
+/* ── Bottom Rewards ── */
+.bottom-rewards {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px; padding: 16px 18px;
+}
+.bottom-rewards .reward-col { text-align: center; }
+.bottom-rewards .reward-col:first-child { border-right: 1px solid var(--border-subtle); padding-right: 18px; }
+.bottom-rewards .reward-col:last-child { padding-left: 18px; }
+.bottom-rewards .col-title {
+  font-family: var(--font-title); font-size: 16px;
+  background: linear-gradient(to bottom, #ecc9df, #89717f);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 12px; font-weight: bold;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center; margin-top: 24px;
+  font-size: 13px; color: var(--text-muted);
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+
+/* ── Animations ── */
+@keyframes pulse-gold {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+@keyframes reward-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes reward-shrink {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .title { font-size: 28px; }
+  .inputs-row { gap: 12px; }
+  .hero-rewards { grid-template-columns: 1fr; }
+  .xp-columns { grid-template-columns: 1fr; }
+  .xp-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px; }
+  .xp-col:last-child { padding: 12px 18px; }
+  .bottom-rewards { grid-template-columns: 1fr; }
+  .bottom-rewards .reward-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 0 0 14px; margin-bottom: 14px; }
+  .bottom-rewards .reward-col:last-child { padding-left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="page-bg"></div>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <img class="logo-portrait" src="logo.png" alt="Quartero">
+    <div class="title-group">
+      <div class="title">CURIOS CALCULATOR</div>
+      <div class="subtitle">Track your Quartero's Curios progress</div>
+    </div>
+    <div class="level-badge">
+      <svg class="xp-ring" viewBox="0 0 88 88">
+        <polygon class="ring-bg" points="44,2 74,14 86,44 74,74 44,86 14,74 2,44 14,14" />
+        <polygon class="ring-fill" id="xpRing" points="44,2 74,14 86,44 74,74 44,86 14,74 2,44 14,14" />
+      </svg>
+      <img src="badge.png" alt="">
+      <span class="level-number" id="levelDisplay">0</span>
+    </div>
+    <div class="inputs-row">
+      <div class="input-row">
+        <label>Current Level</label>
+        <input type="number" id="currentLevel" min="0" max="300" value="0">
+      </div>
+      <div class="input-row">
+        <label>Current XP</label>
+        <input type="number" id="currentXP" min="-25" max="1000" step="25" value="0">
+      </div>
+      <div class="input-row">
+        <label>Target Level</label>
+        <input type="number" id="targetLevel" min="0" max="300" value="30">
+      </div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+  </div>
+
+  <!-- The Grind -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3>The Grind</h3>
+      <div class="xp-summary" id="xpSummary"></div>
+    </div>
+    <div class="xp-columns" id="xpColumns"></div>
+    <div class="xp-note">Average rows assume a 50% win rate. Hover rows for details.</div>
+  </div>
+
+  <!-- Pace Check -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Pace Check</h3>
+      <div class="pace-actions">
+        <button class="pace-btn" onclick="saveSnapshot()">Mark Progress</button>
+        <button class="pace-btn danger" onclick="clearSnapshot()">Clear</button>
+      </div>
+    </div>
+    <div id="paceContent"></div>
+  </div>
+
+  <!-- Hero Set Rewards -->
+  <div class="rewards-section">
+    <h3>Hero Set Rewards</h3>
+    <div class="hero-rewards">
+      <div class="hero-card">
+        <div class="card-bottom">
+          <div class="hero-name">Death Prophet</div>
+          <div class="set-name"><a href="https://liquipedia.net/dota2/The_Blue_Lotus" target="_blank">The Blue Lotus<span class="set-preview"><img src="https://liquipedia.net/commons/images/5/5d/Cosmetic_icon_The_Blue_Lotus.png" alt="The Blue Lotus"></span></a></div>
+          <div class="level-badges" id="badges-dp"></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="tier-toggle">
+          <button class="tier-btn active" id="tier1Btn" onclick="setMarsTier(1)">Tier 1</button>
+          <button class="tier-btn" id="tier2Btn" onclick="setMarsTier(2)">Tier 2</button>
+        </div>
+        <div class="card-bottom">
+          <div class="hero-name">Mars</div>
+          <div class="set-name" id="marsSetName"><a id="marsSetLink" href="https://liquipedia.net/dota2/The_Red_Berserker" target="_blank">The Red Berserker<span class="set-preview"><img id="marsSetImg" src="https://liquipedia.net/commons/images/3/32/Cosmetic_icon_The_Red_Berserker.png" alt="The Red Berserker"></span></a></div>
+          <div class="level-badges" id="badges-mars"></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="card-bottom">
+          <div class="hero-name">Zeus</div>
+          <div class="set-name"><a href="https://liquipedia.net/dota2/Stormfather" target="_blank">Stormfather<span class="set-preview"><img src="https://liquipedia.net/commons/images/d/de/Cosmetic_icon_Stormfather.png" alt="Stormfather"></span></a></div>
+          <div class="level-badges" id="badges-zeus"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Effects & Antiques -->
+  <div class="bottom-rewards">
+    <div class="reward-col">
+      <div class="col-title">Event Effects</div>
+      <div class="level-badges" id="badges-effects"></div>
+    </div>
+    <div class="reward-col">
+      <div class="col-title">Antiques</div>
+      <div class="level-badges" id="badges-antiques"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Available Until: <span id="eventEndLocal"></span>
+  </div>
+</div>
+
+<script>
+/* ── Constants ── */
+const EVENT_END = new Date('2026-06-04T20:00:00Z');
+const XP_PER_LEVEL = 1000;
+const XP_WIN = 650, XP_LOSS = 250;
+const XP_TURBO_WIN = 425, XP_TURBO_LOSS = 175;
+const XP_AVG_NORMAL = (XP_WIN + XP_LOSS) / 2;
+const XP_AVG_TURBO = (XP_TURBO_WIN + XP_TURBO_LOSS) / 2;
+
+const REWARDS = {
+  dp:        [1, 3, 6, 8, 10],
+  marsTier1: [21, 24, 27, 30],
+  marsTier2: [40, 55, 75, 100],
+  zeus:      [12, 14, 16, 18],
+  effects:   [2, 5, 7, 11, 13, 17, 19, 23, 29],
+  antiques:  [5, 15, 20, 25, 30, 40, 60, 100, 200, 300]
+};
+
+const MARS_DATA = {
+  1: { name: 'The Red Berserker', url: 'https://liquipedia.net/dota2/The_Red_Berserker', img: 'https://liquipedia.net/commons/images/3/32/Cosmetic_icon_The_Red_Berserker.png' },
+  2: { name: "World's End",       url: 'https://liquipedia.net/dota2/WorldsEnd',          img: 'https://liquipedia.net/commons/images/8/84/Cosmetic_icon_WorldsEnd.png' }
+};
+
+// Pre-computed octagon perimeter for XP ring
+const OCTAGON_PTS = [[44,2],[74,14],[86,44],[74,74],[44,86],[14,74],[2,44],[14,14]];
+const OCTAGON_PERIMETER = OCTAGON_PTS.reduce((sum, [x1, y1], i) => {
+  const [x2, y2] = OCTAGON_PTS[(i + 1) % OCTAGON_PTS.length];
+  return sum + Math.hypot(x2 - x1, y2 - y1);
+}, 0);
+
+/* ── State ── */
+let currentMarsTier = 1;
+let prevLevel = null;
+const badgeStates = {};
+
+/* ── Helpers ── */
+function xpBetweenLevels(from, to) {
+  return Math.max(0, (to - from) * XP_PER_LEVEL);
+}
+
+function daysUntilEnd() {
+  return Math.max(0, (EVENT_END - Date.now()) / 86400000);
+}
+
+function perDay(total, days) {
+  return days > 0 ? (total / days).toFixed(1) : '---';
+}
+
+/* ── DOM Helpers ── */
+const $ = id => document.getElementById(id);
+
+function readInputs() {
+  return {
+    level: parseInt($('currentLevel').value) || 0,
+    xp:    parseInt($('currentXP').value) || 0,
+    target: parseInt($('targetLevel').value) || 0,
+  };
+}
+
+/* ── Mars Tier ── */
+function setMarsTier(tier, skipUpdate) {
+  currentMarsTier = tier;
+  $('tier1Btn').classList.toggle('active', tier === 1);
+  $('tier2Btn').classList.toggle('active', tier === 2);
+  const d = MARS_DATA[tier];
+  const link = $('marsSetLink');
+  link.href = d.url;
+  link.childNodes[0].textContent = d.name;
+  $('marsSetImg').src = d.img;
+  $('marsSetImg').alt = d.name;
+  if (!skipUpdate) updateDisplay();
+}
+
+/* ── Reward Badges ── */
+function buildBadges(containerId, levels, currentLvl, targetLvl) {
+  const container = $(containerId);
+  if (!badgeStates[containerId]) badgeStates[containerId] = {};
+  container.innerHTML = '';
+
+  const pulsePhase = (performance.now() / 1000) % 2.5;
+
+  levels.forEach(lvl => {
+    const state = lvl <= currentLvl ? 'unlocked'
+                : lvl <= targetLvl ? 'targeted'
+                : 'locked';
+
+    const prev = badgeStates[containerId][lvl];
+    const changed = prev !== undefined && prev !== state;
+    badgeStates[containerId][lvl] = state;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'reward-dot-wrap';
+
+    if (state === 'unlocked') {
+      wrap.classList.add('unlocked');
+    } else if (state === 'targeted') {
+      wrap.classList.add('targeted');
+      wrap.style.setProperty('--pulse-delay', `-${pulsePhase.toFixed(3)}s`);
+    }
+
+    if (changed) {
+      const ORDER = { locked: 0, targeted: 1, unlocked: 2 };
+      const anim = ORDER[state] > ORDER[prev] ? 'reward-pop' : 'reward-shrink';
+      wrap.style.animation = `${anim} 0.3s ease-out`;
+    }
+
+    const dot = document.createElement('div');
+    dot.className = 'reward-dot';
+    dot.textContent = lvl;
+    wrap.appendChild(dot);
+    container.appendChild(wrap);
+  });
+}
+
+/* ── Countdown ── */
+function updateCountdown() {
+  const diff = EVENT_END - Date.now();
+  if (diff <= 0) {
+    $('countdown').innerHTML = '<span class="time-value">Event has ended</span>';
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  $('countdown').innerHTML = `<span class="time-value">${d}d ${h}h ${m}m</span> remaining`;
+}
+
+/* ── Main Display Update ── */
+function updateDisplay() {
+  const { level: cur, xp: curXP, target: tgt } = readInputs();
+
+  $('levelDisplay').textContent = cur;
+
+  // Auto-switch Mars tier on level crossing 30
+  if (prevLevel !== null && prevLevel !== cur) {
+    if (prevLevel < 30 && cur >= 30 && tgt >= 40) setMarsTier(2, true);
+    else if (prevLevel >= 30 && cur < 30) setMarsTier(1, true);
+  }
+  prevLevel = cur;
+
+  // XP ring
+  const ring = $('xpRing');
+  ring.style.strokeDasharray = OCTAGON_PERIMETER;
+  ring.style.strokeDashoffset = OCTAGON_PERIMETER * (1 - Math.min(curXP / XP_PER_LEVEL, 1));
+
+  // Persist
+  localStorage.setItem('quartero_current_level', cur);
+  localStorage.setItem('quartero_current_xp', curXP);
+  localStorage.setItem('quartero_target_level', tgt);
+
+  // Calculations
+  const xpNeeded = Math.max(0, xpBetweenLevels(cur, tgt) - curXP);
+  const days = daysUntilEnd();
+
+  const wins   = Math.ceil(xpNeeded / XP_WIN);
+  const losses = Math.ceil(xpNeeded / XP_LOSS);
+  const tWins  = Math.ceil(xpNeeded / XP_TURBO_WIN);
+  const tLosses = Math.ceil(xpNeeded / XP_TURBO_LOSS);
+  const avgN   = Math.ceil(xpNeeded / XP_AVG_NORMAL);
+  const avgT   = Math.ceil(xpNeeded / XP_AVG_TURBO);
+
+  const nClass = days > 0 && avgN / days > 5 ? 'warning' : 'highlight';
+  const tClass = days > 0 && avgT / days > 5 ? 'warning' : 'highlight';
+
+  $('xpSummary').innerHTML = `
+    <div class="summary-item"><span class="summary-value">${Math.max(0, tgt - cur)}</span><span class="summary-label">Levels to go</span></div>
+    <div class="summary-item"><span class="summary-value">${xpNeeded.toLocaleString()}</span><span class="summary-label">XP needed</span></div>
+    <div class="summary-item"><span class="summary-value">${days > 0 ? Math.floor(days) : 0}</span><span class="summary-label">Days left</span></div>`;
+
+  $('xpColumns').innerHTML = `
+    <div class="xp-col">
+      <div class="xp-col-title">Normal</div>
+      <div class="xp-col-grid">
+        <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${wins.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${nClass}">${perDay(wins, days)}</span></div>
+        <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgN.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${nClass}">${perDay(avgN, days)}</span></div>
+        <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${losses.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${nClass}">${perDay(losses, days)}</span></div>
+      </div>
+    </div>
+    <div class="xp-col">
+      <div class="xp-col-title">Turbo</div>
+      <div class="xp-col-grid">
+        <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${tWins.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${tClass}">${perDay(tWins, days)}</span></div>
+        <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgT.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${tClass}">${perDay(avgT, days)}</span></div>
+        <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${tLosses.toLocaleString()}</span></div>
+        <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${tClass}">${perDay(tLosses, days)}</span></div>
+      </div>
+    </div>`;
+
+  // Badges
+  buildBadges('badges-dp', REWARDS.dp, cur, tgt);
+  buildBadges('badges-mars', currentMarsTier === 1 ? REWARDS.marsTier1 : REWARDS.marsTier2, cur, tgt);
+  buildBadges('badges-zeus', REWARDS.zeus, cur, tgt);
+  buildBadges('badges-effects', REWARDS.effects, cur, tgt);
+  buildBadges('badges-antiques', REWARDS.antiques, cur, tgt);
+
+  updatePaceCheck(cur, curXP);
+}
+
+/* ── Pace Check ── */
+function saveSnapshot() {
+  const { level, xp, target } = readInputs();
+  localStorage.setItem('quartero_snapshot', JSON.stringify({ level, xp, target, timestamp: Date.now() }));
+  updatePaceCheck(level, xp);
+}
+
+function clearSnapshot() {
+  localStorage.removeItem('quartero_snapshot');
+  updatePaceCheck();
+}
+
+function updatePaceCheck(cur, curXP) {
+  const el = $('paceContent');
+  const raw = localStorage.getItem('quartero_snapshot');
+  if (!raw) {
+    el.innerHTML = '<div class="pace-empty">Mark your progress to track your pace over time.</div>';
+    return;
+  }
+
+  const snap = JSON.parse(raw);
+  const now = Date.now();
+  const totalXpToTarget = xpBetweenLevels(snap.level, snap.target) - snap.xp;
+  const totalTime = EVENT_END.getTime() - snap.timestamp;
+  const elapsed = now - snap.timestamp;
+  const expectedXpEarned = totalTime > 0 ? totalXpToTarget * (elapsed / totalTime) : 0;
+
+  // Convert expected XP to level + partial XP
+  let expLevel = snap.level, expXP = snap.xp, remaining = Math.floor(expectedXpEarned);
+  while (remaining > 0 && expLevel < snap.target) {
+    const gap = XP_PER_LEVEL - expXP;
+    if (remaining >= gap) { remaining -= gap; expLevel++; expXP = 0; }
+    else { expXP += remaining; remaining = 0; }
+  }
+
+  if (cur === undefined) cur = readInputs().level;
+  if (curXP === undefined) curXP = readInputs().xp;
+
+  const actualXpEarned = xpBetweenLevels(snap.level, cur) + curXP - snap.xp;
+  const diff = actualXpEarned - Math.floor(expectedXpEarned);
+  const sign = diff > 0 ? '+' : '';
+  const cls = diff > 0 ? 'ahead' : diff < 0 ? 'behind' : '';
+
+  const dateStr = new Date(snap.timestamp).toLocaleString(undefined, {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+
+  el.innerHTML = `
+    <div class="pace-grid">
+      <div class="pace-cell"><span class="pace-label">Marked at</span><span class="pace-value">Lv ${snap.level} + ${snap.xp} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Expected now</span><span class="pace-value">Lv ${expLevel} + ${expXP} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Actual now</span><span class="pace-value">Lv ${cur} + ${curXP} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Pace</span><span class="pace-value ${cls}">${sign}${diff.toLocaleString()} XP</span></div>
+    </div>
+    <div class="pace-date">Marked on ${dateStr}</div>`;
+}
+
+/* ── XP Input Overflow ── */
+function handleXPInput() {
+  const lvlInput = $('currentLevel');
+  const xpInput = $('currentXP');
+  let xp = parseInt(xpInput.value), lvl = parseInt(lvlInput.value) || 0;
+
+  if (xp >= XP_PER_LEVEL) {
+    lvl += Math.floor(xp / XP_PER_LEVEL);
+    xp %= XP_PER_LEVEL;
+    lvlInput.value = Math.min(lvl, 300);
+    xpInput.value = xp;
+  } else if (xp < 0 && lvl > 0) {
+    lvl--; xp = XP_PER_LEVEL + xp;
+    lvlInput.value = lvl;
+    xpInput.value = Math.max(0, xp);
+  } else if (xp < 0) {
+    xpInput.value = 0;
+  }
+  updateDisplay();
+}
+
+/* ── Init ── */
+$('currentLevel').value = localStorage.getItem('quartero_current_level') || 0;
+$('currentXP').value = localStorage.getItem('quartero_current_xp') || 0;
+$('targetLevel').value = localStorage.getItem('quartero_target_level') || 30;
+
+// Set initial Mars tier
+const initLevel = parseInt($('currentLevel').value) || 0;
+const initTarget = parseInt($('targetLevel').value) || 30;
+if (initLevel >= 30 && initTarget >= 40) setMarsTier(2, true);
+
+$('currentLevel').addEventListener('input', updateDisplay);
+$('currentXP').addEventListener('input', handleXPInput);
+$('targetLevel').addEventListener('input', updateDisplay);
+
+$('eventEndLocal').textContent = EVENT_END.toLocaleString(undefined, {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+});
+
+updateDisplay();
+updateCountdown();
+setInterval(updateCountdown, 60000);
+</script>
+</body>
+</html>
