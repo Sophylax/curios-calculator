@@ -195,12 +195,10 @@ body {
   text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-.xp-columns {
-  display: grid; grid-template-columns: 1fr 1fr;
-  padding: 0;
-}
+/* The Grind body: 2x2 grid (stats top row, buttons bottom row) on desktop, single col on mobile */
+.grind-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.grind-grid > :nth-child(odd) { border-right: 1px solid var(--border-subtle); }
 .xp-col { padding: 12px 20px 6px; }
-.xp-col:first-child { border-right: 1px solid var(--border-subtle); }
 .xp-col-title {
   font-family: var(--font-title);
   font-size: 13px; color: #F2CEE4;
@@ -229,19 +227,11 @@ body {
   text-align: center; padding: 4px 20px 8px;
 }
 
-/* Buttons row inside The Grind */
-.xp-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
 .xp-btn-col {
   display: flex;
   gap: 6px;
   justify-content: center;
   padding: 4px 20px 6px;
-}
-.xp-btn-col:first-child {
-  border-right: 1px solid var(--border-subtle);
 }
 .pace-btn.xp-btn {
   min-width: 92px;
@@ -451,11 +441,12 @@ body {
       "badge inputs";
   }
   .hero-rewards { grid-template-columns: 1fr; }
-  .xp-columns { grid-template-columns: 1fr; }
-  .xp-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px; }
-  .xp-col:last-child { padding: 12px 20px; }
-  .xp-buttons { grid-template-columns: 1fr; }
-  .xp-btn-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .grind-grid { grid-template-columns: 1fr; }
+  .grind-grid > :nth-child(odd) { border-right: none; }
+  #xpColNormal { order: 1; }
+  #btnColNormal { order: 2; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px; }
+  #xpColTurbo { order: 3; }
+  #btnColTurbo { order: 4; }
   .bottom-rewards { grid-template-columns: 1fr; }
   .bottom-rewards .reward-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 0 0 14px; margin-bottom: 14px; }
   .bottom-rewards .reward-col:last-child { padding-left: 0; }
@@ -504,13 +495,14 @@ body {
       <h3>The Grind</h3>
       <div class="xp-summary" id="xpSummary"></div>
     </div>
-    <div class="xp-columns" id="xpColumns"></div>
-    <div class="xp-buttons">
-      <div class="xp-btn-col">
+    <div class="grind-grid">
+      <div class="xp-col" id="xpColNormal"></div>
+      <div class="xp-col" id="xpColTurbo"></div>
+      <div class="xp-btn-col" id="btnColNormal">
         <button class="pace-btn xp-btn" id="btnNormalWin" title="Right-click to subtract"></button>
         <button class="pace-btn xp-btn" id="btnNormalLoss" title="Right-click to subtract"></button>
       </div>
-      <div class="xp-btn-col">
+      <div class="xp-btn-col" id="btnColTurbo">
         <button class="pace-btn xp-btn" id="btnTurboWin" title="Right-click to subtract"></button>
         <button class="pace-btn xp-btn" id="btnTurboLoss" title="Right-click to subtract"></button>
       </div>
@@ -756,28 +748,26 @@ function updateDisplay() {
     <div class="summary-item"><span class="summary-value">${xpNeeded.toLocaleString()}</span><span class="summary-label">XP needed</span></div>
     <div class="summary-item"><span class="summary-value">${days > 0 ? Math.floor(days) : 0}</span><span class="summary-label">Days left</span></div>`;
 
-  $('xpColumns').innerHTML = `
-    <div class="xp-col">
-      <div class="xp-col-title">Normal</div>
-      <div class="xp-col-grid">
-        <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${wins.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${nClass}">${perDay(wins, days)}</span></div>
-        <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgN.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${nClass}">${perDay(avgN, days)}</span></div>
-        <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${losses.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${nClass}">${perDay(losses, days)}</span></div>
-      </div>
-    </div>
-    <div class="xp-col">
-      <div class="xp-col-title">Turbo</div>
-      <div class="xp-col-grid">
-        <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${tWins.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${tClass}">${perDay(tWins, days)}</span></div>
-        <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgT.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${tClass}">${perDay(avgT, days)}</span></div>
-        <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${tLosses.toLocaleString()}</span></div>
-        <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${tClass}">${perDay(tLosses, days)}</span></div>
-      </div>
+  $('xpColNormal').innerHTML = `
+    <div class="xp-col-title">Normal</div>
+    <div class="xp-col-grid">
+      <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${wins.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${nClass}">${perDay(wins, days)}</span></div>
+      <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgN.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_AVG_NORMAL} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${nClass}">${perDay(avgN, days)}</span></div>
+      <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${losses.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${nClass}">${perDay(losses, days)}</span></div>
+    </div>`;
+
+  $('xpColTurbo').innerHTML = `
+    <div class="xp-col-title">Turbo</div>
+    <div class="xp-col-grid">
+      <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">All wins</span><span class="stat-value">${tWins.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_TURBO_WIN} XP per win"><span class="stat-label">Wins / day</span><span class="stat-value ${tClass}">${perDay(tWins, days)}</span></div>
+      <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Average</span><span class="stat-value">${avgT.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_AVG_TURBO} XP avg at 50% WR"><span class="stat-label">Avg / day</span><span class="stat-value ${tClass}">${perDay(avgT, days)}</span></div>
+      <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${tLosses.toLocaleString()}</span></div>
+      <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${tClass}">${perDay(tLosses, days)}</span></div>
     </div>`;
 
   // Badges
