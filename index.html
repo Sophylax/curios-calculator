@@ -431,6 +431,15 @@ body {
 }
 
 /* ── Responsive ── */
+@media (max-width: 900px) {
+  /* Cap Effects (9 dots) and Antiques (10 dots) at 5 dots wide so wraps split evenly and each row centers */
+  #badges-effects, #badges-antiques {
+    max-width: calc(5 * 34px + 4 * 4px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @media (max-width: 700px) {
   .title { font-size: 28px; }
   .inputs-row { gap: 12px; }
