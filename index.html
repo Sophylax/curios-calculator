@@ -842,6 +842,28 @@ const initLevel = parseInt($('currentLevel').value) || 0;
 const initTarget = parseInt($('targetLevel').value) || 30;
 if (initLevel >= 30 && initTarget >= 40) setMarsTier(2, true);
 
+/* ── XP Gain Buttons ── */
+function applyXpDelta(delta) {
+  const xpInput = $('currentXP');
+  xpInput.value = (parseInt(xpInput.value) || 0) + delta;
+  handleXPInput();
+}
+
+[
+  ['btnNormalWin',  'Win',  XP_WIN],
+  ['btnNormalLoss', 'Loss', XP_LOSS],
+  ['btnTurboWin',   'Win',  XP_TURBO_WIN],
+  ['btnTurboLoss',  'Loss', XP_TURBO_LOSS],
+].forEach(([id, label, xp]) => {
+  const btn = $(id);
+  btn.textContent = `+${label} (${xp})`;
+  btn.addEventListener('click', () => applyXpDelta(xp));
+  btn.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    applyXpDelta(-xp);
+  });
+});
+
 $('currentLevel').addEventListener('input', updateDisplay);
 $('currentXP').addEventListener('input', handleXPInput);
 $('targetLevel').addEventListener('input', updateDisplay);
