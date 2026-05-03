@@ -443,6 +443,13 @@ body {
 @media (max-width: 700px) {
   .title { font-size: 28px; }
   .inputs-row { gap: 12px; }
+  .logo-portrait { display: none; }
+  .header {
+    grid-template-columns: 88px 1fr;
+    grid-template-areas:
+      "badge title"
+      "badge inputs";
+  }
   .hero-rewards { grid-template-columns: 1fr; }
   .xp-columns { grid-template-columns: 1fr; }
   .xp-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px; }
