@@ -140,9 +140,20 @@ body {
 .inputs-row {
   grid-area: inputs;
   display: flex; align-items: center; justify-content: center;
-  gap: 24px; flex-wrap: wrap;
+  gap: 16px; flex-wrap: wrap;
+  container-type: inline-size;
 }
+/* min-width forces wrap to occur at predictable counts (4 / 3+1 / 2+2 / 1+1+1+1), no media queries needed */
+.inputs-row > * { min-width: 175px; }
 .input-row { display: flex; align-items: center; gap: 8px; }
+/* Right-align inputs only when the layout has wrapped to 2+2 or vertical (so inputs line up across rows) */
+@container (max-width: 556px) {
+  .input-row { justify-content: flex-end; }
+}
+/* In 2+2, the Current XP input has no input below it to align with (countdown is in that column), so leave it default-aligned */
+@container (min-width: 366px) and (max-width: 556px) {
+  .input-row:nth-child(2) { justify-content: flex-start; }
+}
 .input-row label {
   font-size: 13px; color: var(--text-muted);
   text-shadow: 0 1px 6px rgba(0,0,0,0.5);
@@ -432,7 +443,6 @@ body {
 
 @media (max-width: 700px) {
   .title { font-size: 28px; }
-  .inputs-row { gap: 12px; }
   .logo-portrait { display: none; }
   .header {
     grid-template-columns: 88px 1fr;
