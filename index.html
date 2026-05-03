@@ -694,8 +694,10 @@ function updateDisplay() {
 
   $('levelDisplay').textContent = cur;
 
-  // Auto-switch Mars tier on level crossing 30
-  if (prevLevel !== null && prevLevel !== cur) {
+  // Auto-switch Mars tier: first call seeds from current state; later calls react to level crossing 30
+  if (prevLevel === null) {
+    if (cur >= 30 && tgt >= 40) setMarsTier(2, true);
+  } else if (prevLevel !== cur) {
     if (prevLevel < 30 && cur >= 30 && tgt >= 40) setMarsTier(2, true);
     else if (prevLevel >= 30 && cur < 30) setMarsTier(1, true);
   }
@@ -846,11 +848,6 @@ function handleXPInput() {
 $('currentLevel').value = localStorage.getItem('quartero_current_level') || 0;
 $('currentXP').value = localStorage.getItem('quartero_current_xp') || 0;
 $('targetLevel').value = localStorage.getItem('quartero_target_level') || 30;
-
-// Set initial Mars tier
-const initLevel = parseInt($('currentLevel').value) || 0;
-const initTarget = parseInt($('targetLevel').value) || 30;
-if (initLevel >= 30 && initTarget >= 40) setMarsTier(2, true);
 
 /* ── XP Gain Buttons ── */
 function applyXpDelta(delta) {
