@@ -793,7 +793,9 @@ function updatePaceCheck(cur, curXP) {
   const totalXpToTarget = xpBetweenLevels(snap.level, snap.target) - snap.xp;
   const totalTime = EVENT_END.getTime() - snap.timestamp;
   const elapsed = now - snap.timestamp;
-  const expectedXpEarned = totalTime > 0 ? totalXpToTarget * (elapsed / totalTime) : 0;
+  const expectedXpEarned = totalTime > 0
+    ? Math.min(totalXpToTarget, totalXpToTarget * (elapsed / totalTime))
+    : 0;
 
   // Convert expected XP to level + partial XP
   let expLevel = snap.level, expXP = snap.xp, remaining = Math.floor(expectedXpEarned);
