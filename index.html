@@ -825,9 +825,9 @@ function updatePaceCheck(cur, curXP) {
 
   el.innerHTML = `
     <div class="pace-grid">
-      <div class="pace-cell"><span class="pace-label">Marked at</span><span class="pace-value">Lv ${snap.level} + ${snap.xp} XP</span></div>
-      <div class="pace-cell"><span class="pace-label">Expected now</span><span class="pace-value">Lv ${expLevel} + ${expXP} XP</span></div>
-      <div class="pace-cell"><span class="pace-label">Actual now</span><span class="pace-value">Lv ${cur} + ${curXP} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Marked</span><span class="pace-value">Lv ${snap.level} + ${snap.xp} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Expected</span><span class="pace-value">Lv ${expLevel} + ${expXP} XP</span></div>
+      <div class="pace-cell"><span class="pace-label">Actual</span><span class="pace-value">Lv ${cur} + ${curXP} XP</span></div>
       <div class="pace-cell"><span class="pace-label">Pace</span><span class="pace-value ${cls}">${sign}${diff.toLocaleString()} XP</span></div>
     </div>
     <div class="pace-date">Marked on ${dateStr}</div>`;
