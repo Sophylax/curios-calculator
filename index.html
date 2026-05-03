@@ -290,12 +290,12 @@ body {
 /* ── Rewards ── */
 .rewards-section { margin-bottom: 24px; }
 .rewards-section h3 {
-  font-family: var(--font-title); font-size: 15px;
-  background: linear-gradient(to bottom, #F2CEE4, #4D3945);
+  font-family: var(--font-title); font-size: 16px;
+  background: linear-gradient(to bottom, var(--text-primary), var(--text-muted));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 1.5px; text-transform: uppercase;
-  text-align: center; margin-bottom: 14px;
+  text-align: center; margin-bottom: 24px;
 }
 
 .hero-rewards {
@@ -306,17 +306,18 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 6px; padding: 16px 12px;
-  text-align: center; display: flex; flex-direction: column;
+  text-align: center;
+  display: flex; flex-direction: column; justify-content: space-between;
+  gap: 12px;
 }
-.hero-card .card-bottom { margin-top: auto; padding-top: 10px; }
 .hero-card .hero-name {
   font-size: 11px; color: var(--text-hero);
   text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px;
 }
 .hero-card .set-name {
   font-family: var(--font-title); font-size: 16px;
-  color: var(--text-white); margin-bottom: 10px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.6); min-height: 22px;
+  color: var(--text-white);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 .hero-card .set-name a {
   color: inherit; text-decoration: none;
@@ -518,27 +519,33 @@ body {
     <h3>Hero Set Rewards</h3>
     <div class="hero-rewards">
       <div class="hero-card">
-        <div class="card-bottom">
+        <div class="card-top">
           <div class="hero-name">Death Prophet</div>
           <div class="set-name"><a href="https://liquipedia.net/dota2/The_Blue_Lotus" target="_blank">The Blue Lotus<span class="set-preview"><img src="set_blue_lotus.png" alt="The Blue Lotus"></span></a></div>
+        </div>
+        <div class="card-bottom">
           <div class="level-badges" id="badges-dp"></div>
         </div>
       </div>
       <div class="hero-card">
+        <div class="card-top">
+          <div class="hero-name">Mars</div>
+          <div class="set-name" id="marsSetName"><a id="marsSetLink" href="" target="_blank"><span id="marsSetText"></span><span class="set-preview"><img id="marsSetImg" src="" alt=""></span></a></div>
+        </div>
         <div class="tier-toggle">
           <button class="tier-btn" id="tier1Btn" onclick="setMarsTier(1)">Tier 1</button>
           <button class="tier-btn" id="tier2Btn" onclick="setMarsTier(2)">Tier 2</button>
         </div>
         <div class="card-bottom">
-          <div class="hero-name">Mars</div>
-          <div class="set-name" id="marsSetName"><a id="marsSetLink" href="" target="_blank"><span id="marsSetText"></span><span class="set-preview"><img id="marsSetImg" src="" alt=""></span></a></div>
           <div class="level-badges" id="badges-mars"></div>
         </div>
       </div>
       <div class="hero-card">
-        <div class="card-bottom">
+        <div class="card-top">
           <div class="hero-name">Zeus</div>
           <div class="set-name"><a href="https://liquipedia.net/dota2/Stormfather" target="_blank">Stormfather<span class="set-preview"><img src="set_stormfather.png" alt="Stormfather"></span></a></div>
+        </div>
+        <div class="card-bottom">
           <div class="level-badges" id="badges-zeus"></div>
         </div>
       </div>
