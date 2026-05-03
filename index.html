@@ -526,12 +526,12 @@ body {
       </div>
       <div class="hero-card">
         <div class="tier-toggle">
-          <button class="tier-btn active" id="tier1Btn" onclick="setMarsTier(1)">Tier 1</button>
+          <button class="tier-btn" id="tier1Btn" onclick="setMarsTier(1)">Tier 1</button>
           <button class="tier-btn" id="tier2Btn" onclick="setMarsTier(2)">Tier 2</button>
         </div>
         <div class="card-bottom">
           <div class="hero-name">Mars</div>
-          <div class="set-name" id="marsSetName"><a id="marsSetLink" href="https://liquipedia.net/dota2/The_Red_Berserker" target="_blank">The Red Berserker<span class="set-preview"><img id="marsSetImg" src="set_red_berserker.png" alt="The Red Berserker"></span></a></div>
+          <div class="set-name" id="marsSetName"><a id="marsSetLink" href="" target="_blank"><span id="marsSetText"></span><span class="set-preview"><img id="marsSetImg" src="" alt=""></span></a></div>
           <div class="level-badges" id="badges-mars"></div>
         </div>
       </div>
@@ -628,9 +628,8 @@ function setMarsTier(tier, skipUpdate) {
   $('tier1Btn').classList.toggle('active', tier === 1);
   $('tier2Btn').classList.toggle('active', tier === 2);
   const d = MARS_DATA[tier];
-  const link = $('marsSetLink');
-  link.href = d.url;
-  link.childNodes[0].textContent = d.name;
+  $('marsSetLink').href = d.url;
+  $('marsSetText').textContent = d.name;
   $('marsSetImg').src = d.img;
   $('marsSetImg').alt = d.name;
   if (!skipUpdate) updateDisplay();
@@ -698,7 +697,7 @@ function updateDisplay() {
 
   // Auto-switch Mars tier: first call seeds from current state; later calls react to level crossing 30
   if (prevLevel === null) {
-    if (cur >= 30 && tgt >= 40) setMarsTier(2, true);
+    setMarsTier((cur >= 30 && tgt >= 40) ? 2 : 1, true);
   } else if (prevLevel !== cur) {
     if (prevLevel < 30 && cur >= 30 && tgt >= 40) setMarsTier(2, true);
     else if (prevLevel >= 30 && cur < 30) setMarsTier(1, true);
