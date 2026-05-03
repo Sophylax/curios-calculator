@@ -227,6 +227,23 @@ body {
   text-align: center; padding: 10px 20px 14px;
 }
 
+/* Buttons row inside The Grind */
+.xp-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border-subtle);
+}
+.xp-btn-col {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  padding: 10px 18px;
+}
+.xp-btn-col:first-child {
+  border-right: 1px solid var(--border-subtle);
+}
+.xp-btn { min-width: 92px; }
+
 /* ── Pace Check ── */
 .pace-actions { display: flex; gap: 8px; }
 .pace-btn {
@@ -408,6 +425,8 @@ body {
   .xp-columns { grid-template-columns: 1fr; }
   .xp-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 12px; }
   .xp-col:last-child { padding: 12px 18px; }
+  .xp-buttons { grid-template-columns: 1fr; }
+  .xp-btn-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); }
   .bottom-rewards { grid-template-columns: 1fr; }
   .bottom-rewards .reward-col:first-child { border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 0 0 14px; margin-bottom: 14px; }
   .bottom-rewards .reward-col:last-child { padding-left: 0; }
@@ -457,6 +476,16 @@ body {
       <div class="xp-summary" id="xpSummary"></div>
     </div>
     <div class="xp-columns" id="xpColumns"></div>
+    <div class="xp-buttons">
+      <div class="xp-btn-col">
+        <button class="pace-btn xp-btn" id="btnNormalWin" title="Right-click to subtract"></button>
+        <button class="pace-btn xp-btn" id="btnNormalLoss" title="Right-click to subtract"></button>
+      </div>
+      <div class="xp-btn-col">
+        <button class="pace-btn xp-btn" id="btnTurboWin" title="Right-click to subtract"></button>
+        <button class="pace-btn xp-btn" id="btnTurboLoss" title="Right-click to subtract"></button>
+      </div>
+    </div>
     <div class="xp-note">Average rows assume a 50% win rate. Hover rows for details.</div>
   </div>
 
