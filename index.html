@@ -739,7 +739,20 @@ function updateDisplay() {
   localStorage.setItem('quartero_current_xp', curXP);
   localStorage.setItem('quartero_target_level', tgt);
 
-  // Calculations
+  // Badges (level/target dependent only — skip on the time-only refresh)
+  buildBadges('badges-dp', REWARDS.dp, cur, tgt);
+  buildBadges('badges-mars', currentMarsTier === 1 ? REWARDS.marsTier1 : REWARDS.marsTier2, cur, tgt);
+  buildBadges('badges-zeus', REWARDS.zeus, cur, tgt);
+  buildBadges('badges-effects', REWARDS.effects, cur, tgt);
+  buildBadges('badges-antiques', REWARDS.antiques, cur, tgt);
+
+  refreshTimeDependent();
+}
+
+// Cells that change with elapsed time: Grind summary, per-day rates, and Pace Check.
+// Called by updateDisplay() and by the once-a-minute interval.
+function refreshTimeDependent() {
+  const { level: cur, xp: curXP, target: tgt } = readInputs();
   const xpNeeded = Math.max(0, xpBetweenLevels(cur, tgt) - curXP);
   const days = daysUntilEnd();
 
@@ -779,13 +792,6 @@ function updateDisplay() {
       <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">All losses</span><span class="stat-value">${tLosses.toLocaleString()}</span></div>
       <div class="xp-stat" title="${XP_TURBO_LOSS} XP per loss"><span class="stat-label">Losses / day</span><span class="stat-value ${tClass}">${perDay(tLosses, days)}</span></div>
     </div>`;
-
-  // Badges
-  buildBadges('badges-dp', REWARDS.dp, cur, tgt);
-  buildBadges('badges-mars', currentMarsTier === 1 ? REWARDS.marsTier1 : REWARDS.marsTier2, cur, tgt);
-  buildBadges('badges-zeus', REWARDS.zeus, cur, tgt);
-  buildBadges('badges-effects', REWARDS.effects, cur, tgt);
-  buildBadges('badges-antiques', REWARDS.antiques, cur, tgt);
 
   updatePaceCheck(cur, curXP);
 }
@@ -908,7 +914,7 @@ $('eventEndLocal').textContent = EVENT_END.toLocaleString(undefined, {
 
 updateDisplay();
 updateCountdown();
-setInterval(updateCountdown, 60000);
+setInterval(() => { updateCountdown(); refreshTimeDependent(); }, 60000);
 </script>
 </body>
 </html>
